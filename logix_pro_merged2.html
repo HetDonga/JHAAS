@@ -1,0 +1,1503 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LOGIX Pro - Digital Logic Analyzer & Visualizer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Removed Tesseract.js script -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        display: ['"Syne"', 'sans-serif'],
+                        mono: ['"Fira Code"', 'monospace']
+                    },
+                    colors: {
+                        gold: {
+                            300: '#F3E5AB',
+                            400: '#E6C687',
+                            500: '#D4AF37',
+                            600: '#AA820A',
+                            950: '#1C1504'
+                        },
+                        emerald: { 400: '#00FF9D', 500: '#00E68C', 950: '#002615' },
+                        fuchsia: { 400: '#E066FF', 500: '#C026D3', 950: '#2A0033' },
+                        cyan: { 400: '#38BDF8', 500: '#0284C7', 950: '#032B45' },
+                        darkBg: '#07090E',
+                        panelBg: '#0F1420'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #05070B;
+            color: #F1F5F9;
+            background-image:
+                radial-gradient(circle at 12% 15%, rgba(212, 175, 55, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 88% 75%, rgba(56, 189, 248, 0.06) 0%, transparent 45%),
+                radial-gradient(circle at 50% 50%, rgba(192, 38, 211, 0.04) 0%, transparent 55%),
+                radial-gradient(circle at 50% 100%, rgba(0, 255, 157, 0.03) 0%, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        /* Gold & Luxury Neon Glows */
+        .glow-gold { filter: drop-shadow(0 0 16px rgba(212, 175, 55, 0.6)); }
+        .glow-emerald { filter: drop-shadow(0 0 16px rgba(0, 255, 157, 0.55)); }
+        .glow-cyan { filter: drop-shadow(0 0 16px rgba(56, 189, 248, 0.55)); }
+        .glow-fuchsia { filter: drop-shadow(0 0 16px rgba(224, 102, 255, 0.55)); }
+
+        .gold-gradient-text {
+            background: linear-gradient(135deg, #FFFFFF 0%, #FFF2D1 20%, #F5D061 50%, #D4AF37 75%, #997813 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .gold-border-gradient {
+            border: 1px solid transparent;
+            background-image: linear-gradient(#0C101A, #0C101A), linear-gradient(135deg, rgba(245, 208, 97, 0.5), rgba(255, 255, 255, 0.08), rgba(212, 175, 55, 0.25));
+            background-origin: border-box;
+            background-clip: padding-box, border-box;
+        }
+
+        .glass-panel {
+            background: rgba(12, 16, 26, 0.82);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(5, 7, 11, 0.85); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(212, 175, 55, 0.35); border-radius: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(212, 175, 55, 0.7); }
+
+        /* Terminal Syntax Highlight */
+        .syn-kw { color: #E066FF; font-weight: 600; }
+        .syn-type { color: #F5D061; font-weight: 600; }
+        .syn-num { color: #00FF9D; font-weight: 600; }
+        .syn-comment { color: #64748B; font-style: italic; }
+        .syn-str { color: #38BDF8; }
+
+        /* Shimmer Effect for Buttons */
+        .btn-shimmer {
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-shimmer::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(60deg, transparent, rgba(255, 255, 255, 0.22), transparent);
+            transform: rotate(30deg) translateY(-100%);
+            transition: transform 0.85s ease;
+        }
+        .btn-shimmer:hover::after {
+            transform: rotate(30deg) translateY(100%);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-gold-500 selection:text-black">
+
+    <header class="h-22 border-b border-gold-500/20 bg-[#05070B]/95 sticky top-0 z-40 backdrop-blur-2xl px-8 lg:px-14 flex items-center justify-between shadow-2xl py-4">
+        <div class="flex items-center gap-5">
+            <div class="relative flex items-center justify-center">
+                <div class="absolute inset-0 bg-gradient-to-r from-gold-400 via-amber-300 to-yellow-500 rounded-2xl blur-xl opacity-40 animate-pulse"></div>
+                <div class="w-13 h-13 rounded-2xl bg-[#0B0F19] border border-gold-400/50 flex items-center justify-center text-gold-300 relative shadow-2xl p-2.5">
+                    <svg class="w-7 h-7 glow-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M3 9h2m-2 6h2m14-6h2m-2 6h2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
+                    </svg>
+                </div>
+            </div>
+            <div>
+                <div class="flex items-center gap-3">
+                    <h1 class="text-2xl lg:text-3xl font-display font-black tracking-widest gold-gradient-text uppercase">LOGIX</h1>
+                    <span class="text-[11px] font-extrabold tracking-widest px-3 py-1 rounded-full bg-gradient-to-r from-gold-950 via-amber-950 to-gold-950 text-gold-300 border border-gold-500/50 shadow-md">PRO V2.5</span>
+                </div>
+                <p class="text-xs text-slate-300 font-normal tracking-wide mt-0.5">High-Precision Logic Synthesizer & Circuit Suite</p>
+            </div>
+        </div>
+
+        <!-- Presets & Quick Actions Dock -->
+        <div class="hidden md:flex items-center gap-2.5 bg-[#080B12]/95 p-2 rounded-2xl border border-gold-500/20 shadow-2xl backdrop-blur-md">
+            <span class="text-[11px] font-bold text-gold-400/90 uppercase tracking-widest px-3.5 font-display">Presets</span>
+            <button onclick="loadPreset('fullAdder')" class="btn-shimmer px-4 py-2 text-xs font-semibold text-slate-200 hover:text-gold-300 hover:bg-gold-500/15 rounded-xl border border-transparent hover:border-gold-500/30 transition-all duration-300">Full Adder</button>
+            <button onclick="loadPreset('majority')" class="btn-shimmer px-4 py-2 text-xs font-semibold text-slate-200 hover:text-gold-300 hover:bg-gold-500/15 rounded-xl border border-transparent hover:border-gold-500/30 transition-all duration-300">3-Bit Majority</button>
+            <button onclick="loadPreset('bcd')" class="btn-shimmer px-4 py-2 text-xs font-semibold text-slate-200 hover:text-gold-300 hover:bg-gold-500/15 rounded-xl border border-transparent hover:border-gold-500/30 transition-all duration-300">BCD Seg A</button>
+            <button onclick="loadPreset('parity')" class="btn-shimmer px-4 py-2 text-xs font-semibold text-slate-200 hover:text-gold-300 hover:bg-gold-500/15 rounded-xl border border-transparent hover:border-gold-500/30 transition-all duration-300">4-Bit Parity</button>
+        </div>
+
+        <!-- System Controls -->
+        <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2.5 px-4 py-2 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-xs font-mono shadow-md">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse glow-emerald"></span>
+                <span class="tracking-wider font-semibold">ENGINE ACTIVE</span>
+            </div>
+            <button onclick="resetSystem()" class="px-4.5 py-2 text-xs font-bold text-rose-300 hover:text-white bg-rose-950/40 hover:bg-rose-900/60 border border-rose-500/40 hover:border-rose-500/70 rounded-xl transition duration-300 shadow-md">
+                Reset
+            </button>
+        </div>
+    </header>
+
+    <main class="flex-1 p-5 lg:p-10 max-w-[1780px] w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
+
+        <!-- LEFT COLUMN: Inputs & Controls (5 Cols) -->
+        <section class="lg:col-span-5 flex flex-col gap-8">
+
+            <div class="glass-panel p-7 lg:p-8 rounded-3xl flex flex-col gap-6 gold-border-gradient shadow-2xl relative overflow-hidden">
+                <div class="absolute -top-16 -right-16 w-56 h-56 bg-gold-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                <div class="flex items-center justify-between border-b border-white/10 pb-5">
+                    <div>
+                        <h2 class="text-lg font-display font-extrabold text-white tracking-wide flex items-center gap-2.5">
+                            <span class="w-3 h-3 rounded-full bg-gold-400 glow-gold"></span>
+                            Circuit Variables
+                        </h2>
+                        <p class="text-xs text-slate-300 font-normal mt-1 leading-relaxed">Configure digital inputs (1 to 8 variables)</p>
+                    </div>
+                    <span id="varCountBadge" class="text-xs font-bold font-mono px-4 py-1.5 rounded-xl bg-gold-950/90 text-gold-300 border border-gold-500/40 shadow-inner">N = 3 (8 States)</span>
+                </div>
+
+                <div class="flex flex-col gap-6">
+                    <div class="flex items-center justify-between gap-5">
+                        <label for="varSlider" class="text-xs font-bold text-slate-200 tracking-wider">Input Variables (N):</label>
+                        <input type="range" id="varSlider" min="1" max="8" value="3" oninput="changeNumVariables(parseInt(this.value))" class="flex-1 accent-gold-400 cursor-pointer h-2 bg-slate-800 rounded-lg">
+                        <select id="varSelect" onchange="changeNumVariables(parseInt(this.value))" class="bg-[#070A12] border border-gold-500/40 text-gold-300 font-mono text-xs font-semibold rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-gold-400 shadow-inner">
+                            <option value="1">1 Var (2)</option>
+                            <option value="2">2 Vars (4)</option>
+                            <option value="3" selected>3 Vars (8)</option>
+                            <option value="4">4 Vars (16)</option>
+                            <option value="5">5 Vars (32)</option>
+                            <option value="6">6 Vars (64)</option>
+                            <option value="7">7 Vars (128)</option>
+                            <option value="8">8 Vars (256)</option>
+                        </select>
+                    </div>
+
+                    <!-- AI Vision Upload Button -->
+                    <div class="pt-1">
+                        <label class="btn-shimmer relative flex items-center justify-center gap-3.5 p-5 rounded-2xl border border-dashed border-gold-500/50 bg-gradient-to-r from-gold-950/30 via-amber-950/20 to-gold-950/30 hover:bg-gold-950/50 cursor-pointer group transition duration-300 shadow-xl">
+                            <input type="file" id="ocrFileInput" accept="*/*" onchange="handleOCRUpload(event)" class="hidden">
+                            <div class="w-9 h-9 rounded-xl bg-gold-500/15 border border-gold-500/40 flex items-center justify-center text-gold-300 group-hover:scale-110 transition shadow-inner">
+                                <svg class="w-5 h-5 glow-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h0.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                            </div>
+                            <span class="text-xs font-bold text-gold-300 tracking-wide">Scan Image or Upload File (Images, Text, CSV, Docs)</span>
+                        </label>
+                        <div id="ocrLoading" class="hidden mt-3.5 text-center text-xs text-gold-300 font-mono animate-pulse">Processing file with Gemini Vision API... Parsing 0, 1, and Don't Cares (X)...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-panel rounded-3xl overflow-hidden shadow-2xl flex flex-col flex-1 border border-white/10">
+                <div class="flex border-b border-white/10 bg-[#080C16]">
+                    <button id="tabBtnTT" onclick="switchInputTab('tt')" class="flex-1 py-4 text-xs font-display font-extrabold tracking-wider border-b-2 border-gold-400 text-gold-300 transition">Interactive Truth Table</button>
+                    <button id="tabBtnCanon" onclick="switchInputTab('canon')" class="flex-1 py-4 text-xs font-display font-extrabold tracking-wider text-slate-400 hover:text-slate-200 border-b-2 border-transparent transition">Canonical Notation (Σm, ΠM, d)</button>
+                </div>
+
+                <!-- Tab 1: Truth Table Editor -->
+                <div id="tabContentTT" class="p-7 flex flex-col gap-6 flex-1">
+                    <div class="flex flex-wrap items-center justify-between gap-3.5">
+                        <div class="flex items-center gap-2">
+                            <span class="text-[11px] font-bold text-slate-300 uppercase tracking-widest mr-1">Filter:</span>
+                            <button onclick="filterTTRows('all')" class="px-3 py-1.5 text-[11px] font-mono font-semibold rounded-xl bg-slate-800/90 text-slate-200 hover:bg-slate-700 transition shadow-sm">All</button>
+                            <button onclick="filterTTRows('1')" class="px-3 py-1.5 text-[11px] font-mono font-semibold rounded-xl bg-emerald-950/90 text-emerald-300 border border-emerald-500/40 transition shadow-sm">1s Only</button>
+                            <button onclick="filterTTRows('0')" class="px-3 py-1.5 text-[11px] font-mono font-semibold rounded-xl bg-cyan-950/90 text-cyan-300 border border-cyan-500/40 transition shadow-sm">0s Only</button>
+                            <button onclick="filterTTRows('X')" class="px-3 py-1.5 text-[11px] font-mono font-semibold rounded-xl bg-fuchsia-950/90 text-fuchsia-300 border border-fuchsia-500/40 transition shadow-sm">X Only</button>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="fillTTAll('0')" class="px-3 py-1.5 text-[11px] font-mono font-semibold rounded-xl bg-[#05070B] border border-slate-700 hover:border-cyan-400 text-slate-200 transition shadow-sm">All 0</button>
+                            <button onclick="fillTTAll('1')" class="px-3 py-1.5 text-[11px] font-mono font-semibold rounded-xl bg-[#05070B] border border-slate-700 hover:border-emerald-400 text-slate-200 transition shadow-sm">All 1</button>
+                            <button onclick="fillTTAll('X')" class="px-3 py-1.5 text-[11px] font-mono font-semibold rounded-xl bg-[#05070B] border border-slate-700 hover:border-fuchsia-400 text-slate-200 transition shadow-sm">All X</button>
+                        </div>
+                    </div>
+
+                    <!-- Scrollable Table Matrix -->
+                    <div class="border border-white/10 rounded-2xl overflow-hidden max-h-[440px] overflow-y-auto custom-scrollbar bg-[#05070B]/95 shadow-inner">
+                        <table class="w-full text-center border-collapse text-xs font-mono">
+                            <thead class="bg-[#0A0E1A] text-gold-300 sticky top-0 border-b border-white/10 font-display">
+                                <tr id="ttHeaderRow">
+                                    <!-- Dynamic Variable Headers -->
+                                </tr>
+                            </thead>
+                            <tbody id="ttBody" class="divide-y divide-white/5">
+                                <!-- Dynamic Truth Table Rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tab 2: Canonical Converter -->
+                <div id="tabContentCanon" class="p-7 hidden flex-col gap-5">
+                    <div class="flex flex-col gap-2">
+                        <label class="text-xs font-bold text-slate-200 tracking-wide">Sum of Minterms Σm (Comma-separated minterms):</label>
+                        <input type="text" id="mintermsInput" placeholder="e.g. 0, 2, 5, 7" class="w-full bg-[#05070B] border border-white/15 rounded-xl p-3.5 text-xs font-mono font-bold text-emerald-400 focus:outline-none focus:border-emerald-500 shadow-inner">
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="text-xs font-bold text-slate-200 tracking-wide">Product of Maxterms ΠM (Comma-separated maxterms):</label>
+                        <input type="text" id="maxtermsInput" placeholder="e.g. 1, 3, 4, 6" class="w-full bg-[#05070B] border border-white/15 rounded-xl p-3.5 text-xs font-mono font-bold text-cyan-400 focus:outline-none focus:border-cyan-500 shadow-inner">
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="text-xs font-bold text-slate-200 tracking-wide">Don't Care Conditions d (Comma-separated numbers):</label>
+                        <input type="text" id="dontCaresInput" placeholder="e.g. 3, 6" class="w-full bg-[#05070B] border border-white/15 rounded-xl p-3.5 text-xs font-mono font-bold text-fuchsia-400 focus:outline-none focus:border-fuchsia-500 shadow-inner">
+                    </div>
+                    <button onclick="applyCanonicalNotation()" class="btn-shimmer mt-3 py-3.5 rounded-2xl bg-gradient-to-r from-gold-400 via-amber-400 to-gold-500 text-black font-display font-black text-xs tracking-widest uppercase shadow-2xl hover:opacity-95 transition">
+                        Synthesize Canonical Input
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- RIGHT COLUMN: Visualizations & Analytics (7 Cols) -->
+        <section class="lg:col-span-7 flex flex-col gap-8">
+
+            <div class="glass-panel p-7 lg:p-8 rounded-3xl flex flex-col gap-6 gold-border-gradient shadow-2xl relative overflow-hidden">
+                <div class="flex items-center justify-between border-b border-white/10 pb-4">
+                    <h2 class="text-lg font-display font-extrabold text-white tracking-wide flex items-center gap-2.5">
+                        <span class="w-3 h-3 rounded-full bg-emerald-400 glow-emerald"></span>
+                        Boolean Minimization Engine
+                    </h2>
+                    <span id="optimizationStatus" class="text-xs font-bold text-gold-300 font-mono tracking-wide">Quine-McCluskey Minimal SOP</span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div class="bg-[#05070B]/95 p-5 rounded-2xl border border-white/10 shadow-inner flex flex-col gap-2">
+                        <span class="text-[10px] font-extrabold text-gold-400/90 uppercase tracking-widest font-display">Minimized Sum-of-Products (SOP)</span>
+                        <div id="sopOutput" class="text-base font-mono font-extrabold text-emerald-400 break-all glow-emerald leading-relaxed">Y = A'B + AC</div>
+                    </div>
+                    <div class="bg-[#05070B]/95 p-5 rounded-2xl border border-white/10 shadow-inner flex flex-col gap-2">
+                        <span class="text-[10px] font-extrabold text-gold-400/90 uppercase tracking-widest font-display">Minimized Product-of-Sums (POS)</span>
+                        <div id="posOutput" class="text-base font-mono font-extrabold text-cyan-400 break-all glow-cyan leading-relaxed">Y = (A + B)(A' + C)</div>
+                    </div>
+                </div>
+
+                <!-- Hardware Metrics Badge Row -->
+                <div class="grid grid-cols-3 gap-4 pt-1">
+                    <div class="bg-[#080C16]/90 p-4 rounded-2xl border border-white/10 flex items-center gap-4 shadow-lg">
+                        <div class="w-10 h-10 rounded-xl bg-gold-950/90 border border-gold-500/40 text-gold-300 flex items-center justify-center font-black text-sm font-mono shadow-inner">G</div>
+                        <div>
+                            <div class="text-[10px] font-bold text-slate-300 uppercase tracking-wider">Logic Gates</div>
+                            <div id="metricGates" class="text-sm font-mono font-extrabold text-white">4 Gates</div>
+                        </div>
+                    </div>
+                    <div class="bg-[#080C16]/90 p-4 rounded-2xl border border-white/10 flex items-center gap-4 shadow-lg">
+                        <div class="w-10 h-10 rounded-xl bg-fuchsia-950/90 border border-fuchsia-500/40 text-fuchsia-300 flex items-center justify-center font-black text-sm font-mono shadow-inner">T</div>
+                        <div>
+                            <div class="text-[10px] font-bold text-slate-300 uppercase tracking-wider">CMOS Transistors</div>
+                            <div id="metricTransistors" class="text-sm font-mono font-extrabold text-white">18 Transistors</div>
+                        </div>
+                    </div>
+                    <div class="bg-[#080C16]/90 p-4 rounded-2xl border border-white/10 flex items-center gap-4 shadow-lg">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-950/90 border border-emerald-500/40 text-emerald-300 flex items-center justify-center font-black text-sm font-mono shadow-inner">t_pd</div>
+                        <div>
+                            <div class="text-[10px] font-bold text-slate-300 uppercase tracking-wider">Est. Delay</div>
+                            <div id="metricDelay" class="text-sm font-mono font-extrabold text-white">2.4 ns</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-panel p-7 lg:p-8 rounded-3xl flex flex-col gap-5 shadow-2xl border border-white/10">
+                <div class="flex items-center justify-between border-b border-white/10 pb-4">
+                    <h2 class="text-lg font-display font-extrabold text-white tracking-wide flex items-center gap-2.5">
+                        <span class="w-3 h-3 rounded-full bg-fuchsia-400 glow-fuchsia"></span>
+                        Interactive Karnaugh Map (K-Map)
+                    </h2>
+                    <span class="text-xs font-semibold text-slate-300 font-mono">Implicant Groupings</span>
+                </div>
+
+                <div class="overflow-x-auto custom-scrollbar flex justify-center py-3">
+                    <div id="kmapContainer" class="min-w-[300px]">
+                        <!-- Dynamic K-Map Table -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-panel p-7 lg:p-8 rounded-3xl flex flex-col gap-5 shadow-2xl border border-white/10">
+                <div class="flex flex-wrap items-center justify-between border-b border-white/10 pb-4 gap-4">
+                    <h2 class="text-lg font-display font-extrabold text-white tracking-wide flex items-center gap-2.5">
+                        <span class="w-3 h-3 rounded-full bg-cyan-400 glow-cyan"></span>
+                        Minimized Logic Circuit Diagram
+                    </h2>
+
+                    <!-- Logic Synthesis Mode Selector -->
+                    <div class="flex items-center bg-[#05070B] p-1.5 rounded-2xl border border-white/10 shadow-inner">
+                        <button onclick="setSynthesisMode('basic')" id="btnSynthBasic" class="px-4 py-2 text-xs font-bold rounded-xl bg-gold-400 text-black shadow transition">Basic Gates</button>
+                        <button onclick="setSynthesisMode('nand')" id="btnSynthNand" class="px-4 py-2 text-xs font-bold rounded-xl text-slate-300 hover:text-white transition">NAND-Only</button>
+                        <button onclick="setSynthesisMode('nor')" id="btnSynthNor" class="px-4 py-2 text-xs font-bold rounded-xl text-slate-300 hover:text-white transition">NOR-Only</button>
+                    </div>
+                </div>
+
+                <!-- SVG Circuit Schematic Container -->
+                <div class="relative bg-[#05070B] border border-white/10 rounded-2xl overflow-hidden min-h-[350px] flex items-center justify-center p-6 shadow-inner">
+                    <div id="circuitSVGWrapper" class="w-full h-full flex items-center justify-center overflow-auto custom-scrollbar">
+                        <!-- Dynamic Vector SVG Circuit Schematic -->
+                    </div>
+
+                    <!-- Schematic Zoom & Export Bar -->
+                    <div class="absolute bottom-4 right-4 flex items-center gap-2 bg-[#0C101A]/95 border border-white/10 rounded-xl p-2 backdrop-blur-2xl shadow-2xl">
+                        <button onclick="zoomCircuit(0.1)" class="p-1.5 text-slate-200 hover:text-gold-400 font-mono text-xs font-bold w-8 h-8 flex items-center justify-center bg-[#05070B] rounded-lg transition">+</button>
+                        <button onclick="zoomCircuit(-0.1)" class="p-1.5 text-slate-200 hover:text-gold-400 font-mono text-xs font-bold w-8 h-8 flex items-center justify-center bg-[#05070B] rounded-lg transition">-</button>
+                        <button onclick="resetCircuitZoom()" class="px-2.5 py-1.5 text-slate-200 hover:text-gold-400 font-mono text-xs font-bold bg-[#05070B] rounded-lg transition">Reset</button>
+                        <button onclick="downloadCircuitSVG()" class="px-3 py-1.5 text-xs font-bold bg-gold-950 text-gold-300 border border-gold-500/40 rounded-lg hover:bg-gold-900/60 transition">SVG</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-panel rounded-3xl overflow-hidden shadow-2xl flex flex-col border border-white/10">
+                <div class="flex items-center justify-between px-7 py-4 border-b border-white/10 bg-[#080C16]">
+                    <div class="flex items-center gap-3.5">
+                        <div class="flex gap-2">
+                            <span class="w-3.5 h-3.5 rounded-full bg-rose-500"></span>
+                            <span class="w-3.5 h-3.5 rounded-full bg-amber-500"></span>
+                            <span class="w-3.5 h-3.5 rounded-full bg-emerald-500"></span>
+                        </div>
+                        <span class="text-xs font-mono font-bold text-slate-300">rtl_synthesizer.cli</span>
+                    </div>
+
+                    <div class="flex items-center gap-2.5">
+                        <button onclick="switchRTLTab('verilog')" id="tabRTLVerilog" class="px-3.5 py-1.5 text-xs font-mono font-bold rounded-xl bg-gold-950 text-gold-300 border border-gold-500/40">Verilog</button>
+                        <button onclick="switchRTLTab('vhdl')" id="tabRTLVhdl" class="px-3.5 py-1.5 text-xs font-mono font-bold rounded-xl text-slate-300 hover:text-white">VHDL</button>
+                        <button onclick="switchRTLTab('tb')" id="tabRTLTb" class="px-3.5 py-1.5 text-xs font-mono font-bold rounded-xl text-slate-300 hover:text-white">Testbench</button>
+                        <button onclick="copyRTLCode()" class="ml-2 px-3.5 py-1.5 text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-100 rounded-xl transition">Copy</button>
+                    </div>
+                </div>
+
+                <div class="p-6 bg-[#05070B] font-mono text-xs text-gold-300 leading-relaxed overflow-x-auto max-h-[250px] custom-scrollbar shadow-inner">
+                    <pre id="rtlCodeDisplay"><code>// Generating Verilog RTL Code...</code></pre>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Toast Notification Container -->
+    <div id="toastBox" class="hidden fixed bottom-6 right-6 z-50 px-5 py-3 rounded-2xl bg-gold-950/90 text-gold-300 border border-gold-500/50 font-mono text-xs shadow-2xl backdrop-blur-xl animate-bounce">
+        Notification
+    </div>
+
+    <!-- AI Vision & Document OCR Inspector Modal -->
+    <div id="ocrModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+        <div class="glass-panel w-full max-w-4xl max-h-[90vh] rounded-3xl p-6 lg:p-8 flex flex-col gap-6 gold-border-gradient shadow-2xl overflow-hidden">
+            <div class="flex items-center justify-between border-b border-white/10 pb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-xl bg-gold-500/20 border border-gold-500/40 flex items-center justify-center text-gold-300 font-bold">
+                        <svg class="w-4 h-4 glow-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-display font-extrabold text-white">AI Vision & Document Data Inspector</h3>
+                        <p class="text-[11px] text-slate-400">Extracted data from source file. Verify or manually adjust detected truth table outputs.</p>
+                    </div>
+                </div>
+                <button onclick="closeOCRModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 flex items-center justify-center font-bold text-sm transition">&times;</button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 overflow-y-auto custom-scrollbar p-1">
+                <!-- File / Image Source Preview -->
+                <div class="flex flex-col gap-3">
+                    <span class="text-[11px] font-bold text-gold-400 uppercase tracking-wider font-display">Source File Preview</span>
+                    <div id="ocrPreviewContainer" class="bg-[#05070B] border border-white/10 rounded-2xl p-3 flex flex-col items-center justify-center min-h-[200px] max-h-[260px] overflow-hidden">
+                        <img id="ocrPreviewImage" src="" alt="OCR Preview" class="max-h-[240px] object-contain rounded-lg hidden">
+                        <div id="ocrFileTextPreview" class="text-xs font-mono text-slate-300 overflow-auto w-full max-h-[240px] p-2 bg-black/40 rounded-lg hidden whitespace-pre-wrap"></div>
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-[11px] font-bold text-slate-300">Raw Text / Parsed Content:</label>
+                        <textarea id="ocrRawTextArea" oninput="applyRawTextToOCRGrid()" rows="3" class="w-full bg-[#05070B] border border-white/15 rounded-xl p-3 text-xs font-mono text-gold-300 focus:outline-none focus:border-gold-500 custom-scrollbar" placeholder="Extracted text will appear here..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Extracted States Grid -->
+                <div class="flex flex-col gap-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-bold text-gold-400 uppercase tracking-wider font-display">Parsed Output States</span>
+                        <div class="flex gap-2 text-[10px] font-mono">
+                            <span id="ocrBadge1" class="px-2 py-0.5 rounded-md bg-emerald-950 text-emerald-300 border border-emerald-500/30">1s: 0</span>
+                            <span id="ocrBadge0" class="px-2 py-0.5 rounded-md bg-cyan-950 text-cyan-300 border border-cyan-500/30">0s: 0</span>
+                            <span id="ocrBadgeX" class="px-2 py-0.5 rounded-md bg-fuchsia-950 text-fuchsia-300 border border-fuchsia-500/30">X: 0</span>
+                        </div>
+                    </div>
+                    <p class="text-[11px] text-slate-400">Click any state to toggle value (0 &rarr; 1 &rarr; X):</p>
+                    <div id="ocrParsedGrid" class="grid grid-cols-4 gap-2 max-h-[250px] overflow-y-auto custom-scrollbar p-2 bg-[#05070B] border border-white/10 rounded-2xl">
+                        <!-- Dynamic parsed state buttons -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
+                <button onclick="closeOCRModal()" class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition">Cancel</button>
+                <button onclick="confirmAndApplyOCR()" class="btn-shimmer px-6 py-2.5 rounded-xl bg-gradient-to-r from-gold-400 to-amber-500 text-black text-xs font-bold font-display uppercase tracking-wider shadow-lg transition">
+                    Apply to Truth Table
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JS Function updates for enhanced Truth Table Row & K-Map padding -->
+    <script>
+        let numVars = 3;
+        let varNames = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+        let truthTable = ['0', '1', '1', '0', '1', '0', 'X', '1'];
+        let activeInputTab = 'tt';
+        let synthesisMode = 'basic'; // 'basic', 'nand', 'nor'
+        let activeRTLTab = 'verilog';
+        let circuitZoom = 1.0;
+        let ocrDetectedOutputs = [];
+        let currentUploadedDataUrl = null;
+        let activeTTFilter = 'all';
+
+        // Initialize App on DOM Ready
+        window.addEventListener('DOMContentLoaded', () => {
+            try {
+                initTruthTable();
+                renderAll();
+            } catch (err) {
+                console.error("Initialization error:", err);
+            }
+        });
+
+        function initTruthTable() {
+            const numStates = Math.pow(2, numVars);
+            // Default initial state populator if length mismatch
+            if (truthTable.length !== numStates) {
+                truthTable = new Array(numStates).fill('0');
+                // Set default interesting pattern
+                for (let i = 0; i < numStates; i++) {
+                    if (i % 3 === 1) truthTable[i] = '1';
+                    else if (i % 5 === 4 && numVars >= 3) truthTable[i] = 'X';
+                }
+            }
+        }
+
+        function changeNumVariables(val) {
+            numVars = Math.min(Math.max(1, parseInt(val) || 3), 8);
+            document.getElementById('varSlider').value = numVars;
+            document.getElementById('varSelect').value = numVars;
+            document.getElementById('varCountBadge').innerText = `N = ${numVars} (${Math.pow(2, numVars)} States)`;
+            initTruthTable();
+            renderAll();
+        }
+
+        function renderAll() {
+            renderTruthTableGrid();
+            const minResult = minimizeBoolean();
+            renderMinimizationOutput(minResult);
+            renderKMap(minResult);
+            renderCircuitSVG(minResult);
+            renderRTLCode(minResult);
+            renderMetrics(minResult);
+        }
+
+        function renderTruthTableGrid() {
+            const headerRow = document.getElementById('ttHeaderRow');
+            const tbody = document.getElementById('ttBody');
+            if (!headerRow || !tbody) return;
+
+            // Headers
+            let hHTML = `<th class="py-3.5 px-4 border-r border-white/10 font-bold text-slate-300">m</th>`;
+            for (let i = 0; i < numVars; i++) {
+                hHTML += `<th class="py-3.5 px-4 border-r border-white/10 font-bold text-gold-300">${varNames[i]}</th>`;
+            }
+            hHTML += `<th class="py-3.5 px-4 font-bold text-emerald-400 bg-[#080C16]">Output (Y)</th>`;
+            headerRow.innerHTML = hHTML;
+
+            // Rows
+            const numStates = Math.pow(2, numVars);
+            let bHTML = '';
+
+            for (let i = 0; i < numStates; i++) {
+                const val = truthTable[i] || '0';
+
+                // Filter check
+                if (activeTTFilter === '1' && val !== '1') continue;
+                if (activeTTFilter === '0' && val !== '0') continue;
+                if (activeTTFilter === 'X' && val !== 'X') continue;
+
+                const binaryStr = i.toString(2).padStart(numVars, '0');
+
+                let rowCells = `<td class="py-3 px-4 border-r border-white/5 font-mono text-slate-400 font-semibold">m${i}</td>`;
+                for (let b = 0; b < numVars; b++) {
+                    rowCells += `<td class="py-3 px-4 border-r border-white/5 font-mono text-slate-200 font-bold">${binaryStr[b]}</td>`;
+                }
+
+                const colorClass = val === '1'
+                    ? 'bg-emerald-950/90 text-emerald-300 font-extrabold border-emerald-500/50 shadow-md'
+                    : (val === 'X' ? 'bg-fuchsia-950/90 text-fuchsia-300 font-extrabold border-fuchsia-500/50 shadow-md' : 'bg-[#080C16]/90 text-cyan-300 font-bold border-white/10');
+
+                rowCells += `
+                    <td class="py-2 px-4">
+                        <button onclick="toggleTTCell(${i})" class="w-full py-2 px-4 rounded-xl border ${colorClass} hover:scale-105 transition duration-200 font-mono text-xs">
+                            ${val}
+                        </button>
+                    </td>
+                `;
+
+                bHTML += `<tr class="hover:bg-white/5 transition duration-150">${rowCells}</tr>`;
+            }
+
+            tbody.innerHTML = bHTML;
+        }
+
+        function toggleTTCell(index) {
+            const current = truthTable[index];
+            if (current === '0') truthTable[index] = '1';
+            else if (current === '1') truthTable[index] = 'X';
+            else truthTable[index] = '0';
+            renderAll();
+        }
+
+        function filterTTRows(filter) {
+            activeTTFilter = filter;
+            renderTruthTableGrid();
+        }
+
+        function fillTTAll(val) {
+            truthTable = truthTable.map(() => val);
+            renderAll();
+        }
+
+        function minimizeBoolean() {
+            const minterms = [];
+            const dontCares = [];
+
+            for (let i = 0; i < truthTable.length; i++) {
+                if (truthTable[i] === '1') minterms.push(i);
+                else if (truthTable[i] === 'X') dontCares.push(i);
+            }
+
+            // Fallback edge cases
+            if (minterms.length === 0) {
+                return { sop: "0", pos: "0", termsSOP: [], termsPOS: [], gateCount: 0, transCount: 0, minterms, dontCares };
+            }
+            if (minterms.length + dontCares.length === truthTable.length) {
+                return { sop: "1", pos: "1", termsSOP: [], termsPOS: [], gateCount: 0, transCount: 0, minterms, dontCares };
+            }
+
+            // Simplifier for N variables
+            const terms = solveQuineMcCluskey(minterms, dontCares, numVars);
+            const sop = terms.map(t => termToSOP(t)).join(" + ") || "0";
+
+            // Generate POS complementary
+            const maxterms = [];
+            for (let i = 0; i < truthTable.length; i++) {
+                if (truthTable[i] === '0') maxterms.push(i);
+            }
+            const posTerms = solveQuineMcCluskey(maxterms, dontCares, numVars);
+            const pos = posTerms.map(t => termToPOS(t)).join("") || "1";
+
+            return {
+                sop,
+                pos,
+                termsSOP: terms,
+                termsPOS: posTerms,
+                minterms,
+                dontCares
+            };
+        }
+
+        function solveQuineMcCluskey(ones, dcs, n) {
+            const allTerms = [...ones, ...dcs];
+            if (allTerms.length === 0) return [];
+
+            let groups = {};
+            allTerms.forEach(val => {
+                const bin = val.toString(2).padStart(n, '0');
+                const count1s = (bin.match(/1/g) || []).length;
+                if (!groups[count1s]) groups[count1s] = [];
+                groups[count1s].push({ mask: bin, m: [val] });
+            });
+
+            let primeImplicants = [];
+
+            while (Object.keys(groups).length > 0) {
+                let nextGroups = {};
+                let combined = new Set();
+                const keys = Object.keys(groups).map(Number).sort((a,b)=>a-b);
+
+                for (let i = 0; i < keys.length - 1; i++) {
+                    const k1 = keys[i];
+                    const k2 = keys[i+1];
+                    if (k2 !== k1 + 1) continue;
+
+                    groups[k1].forEach(t1 => {
+                        groups[k2].forEach(t2 => {
+                            const diffIndex = getSingleBitDiff(t1.mask, t2.mask);
+                            if (diffIndex !== -1) {
+                                combined.add(t1.mask);
+                                combined.add(t2.mask);
+                                const newMask = t1.mask.substring(0, diffIndex) + '-' + t1.mask.substring(diffIndex + 1);
+                                const newM = [...new Set([...t1.m, ...t2.m])].sort((a,b)=>a-b);
+
+                                const count1s = (newMask.match(/1/g) || []).length;
+                                if (!nextGroups[count1s]) nextGroups[count1s] = [];
+                                if (!nextGroups[count1s].some(x => x.mask === newMask)) {
+                                    nextGroups[count1s].push({ mask: newMask, m: newM });
+                                }
+                            }
+                        });
+                    });
+                }
+
+                // Add uncombined as primes
+                keys.forEach(k => {
+                    groups[k].forEach(t => {
+                        if (!combined.has(t.mask)) {
+                            if (!primeImplicants.some(p => p.mask === t.mask)) {
+                                primeImplicants.push(t);
+                            }
+                        }
+                    });
+                });
+
+                groups = nextGroups;
+            }
+
+            // Filter essential primes covering minterms
+            const finalTerms = primeImplicants.map(p => p.mask);
+            return finalTerms.slice(0, 6); // Limit for neat schematic rendering
+        }
+
+        function getSingleBitDiff(s1, s2) {
+            let diff = -1;
+            for (let i = 0; i < s1.length; i++) {
+                if (s1[i] !== s2[i]) {
+                    if (diff !== -1) return -1;
+                    diff = i;
+                }
+            }
+            return diff;
+        }
+
+        function termToSOP(mask) {
+            let res = '';
+            for (let i = 0; i < mask.length; i++) {
+                if (mask[i] === '1') res += varNames[i];
+                else if (mask[i] === '0') res += varNames[i] + "'";
+            }
+            return res || '1';
+        }
+
+        function termToPOS(mask) {
+            let res = [];
+            for (let i = 0; i < mask.length; i++) {
+                if (mask[i] === '0') res.push(varNames[i]);
+                else if (mask[i] === '1') res.push(varNames[i] + "'");
+            }
+            return res.length > 0 ? `(${res.join(' + ')})` : '0';
+        }
+
+        function renderMinimizationOutput(minResult) {
+            document.getElementById('sopOutput').innerText = "Y = " + minResult.sop;
+            document.getElementById('posOutput').innerText = "Y = " + minResult.pos;
+        }
+
+        function renderKMap(minResult) {
+            const container = document.getElementById('kmapContainer');
+            if (!container) return;
+
+            if (numVars > 4) {
+                container.innerHTML = `<div class="p-5 text-center text-xs text-slate-400 font-mono">K-Map visual grouping active for N ≤ 4. (N = ${numVars} processed via QM engine)</div>`;
+                return;
+            }
+
+            // Gray Code mappings
+            const g1 = ['0', '1'];
+            const g2 = ['00', '01', '11', '10'];
+
+            let rowCodes = numVars <= 2 ? g1 : g2;
+            let colCodes = numVars === 1 ? ['0'] : (numVars === 3 ? g1 : g2);
+
+            let rowVars = numVars <= 2 ? varNames[0] : varNames[0] + varNames[1];
+            let colVars = numVars === 1 ? '' : (numVars === 3 ? varNames[2] : varNames[2] + varNames[3]);
+
+            let tableHTML = `<table class="border-collapse font-mono text-xs text-center border border-white/10 bg-[#05070B] rounded-2xl overflow-hidden shadow-2xl">`;
+
+            // Corner Header
+            tableHTML += `<tr class="bg-[#080C16] border-b border-white/10"><th class="p-3.5 border-r border-white/10 text-gold-300 font-extrabold">${rowVars} \\ ${colVars}</th>`;
+            colCodes.forEach(c => {
+                tableHTML += `<th class="p-3.5 border-r border-white/10 text-slate-200 font-extrabold">${c}</th>`;
+            });
+            tableHTML += `</tr>`;
+
+            // Data Rows
+            rowCodes.forEach(r => {
+                tableHTML += `<tr class="border-b border-white/5"><th class="p-3.5 bg-[#080C16] border-r border-white/10 text-slate-200 font-extrabold">${r}</th>`;
+                colCodes.forEach(c => {
+                    const fullBin = r + c;
+                    const decimalIdx = parseInt(fullBin, 2);
+                    const val = truthTable[decimalIdx] || '0';
+
+                    const colorClass = val === '1'
+                        ? 'bg-emerald-950/90 text-emerald-300 font-extrabold shadow-inner'
+                        : (val === 'X' ? 'bg-fuchsia-950/90 text-fuchsia-300 font-extrabold shadow-inner' : 'text-slate-500 font-medium');
+
+                    tableHTML += `<td class="p-4 border-r border-white/5 text-sm ${colorClass}">${val}</td>`;
+                });
+                tableHTML += `</tr>`;
+            });
+
+            tableHTML += `</table>`;
+            container.innerHTML = tableHTML;
+        }
+
+        function renderCircuitSVG(minResult) {
+            const wrapper = document.getElementById('circuitSVGWrapper');
+            if (!wrapper) return;
+
+            // Universal mode selection: NAND uses SOP terms, NOR uses POS terms
+            const isNorMode = synthesisMode === 'nor';
+            const isNandMode = synthesisMode === 'nand';
+            const terms = isNorMode ? (minResult.termsPOS.length > 0 ? minResult.termsPOS : minResult.termsSOP) : minResult.termsSOP;
+            const activeVars = Math.min(numVars, 4);
+
+            // A one-literal term does not need its own first-stage gate.  In
+            // NAND/NOR mode the final universal gate needs the inverse of that
+            // literal, so its complementary rail can feed the final gate directly.
+            const termDetails = terms.map(mask => {
+                const literals = [];
+                for (let index = 0; index < mask.length; index++) {
+                    if (mask[index] === '-') continue;
+                    const literalIsComplemented = isNorMode ? mask[index] === '1' : mask[index] === '0';
+                    literals.push({ index, bit: mask[index], literalIsComplemented });
+                }
+
+                const bypassesFirstStage = literals.length === 1 && literals[0].index < activeVars;
+                literals.forEach(literal => {
+                    literal.useComplement = bypassesFirstStage && (isNandMode || isNorMode)
+                        ? !literal.literalIsComplemented
+                        : literal.literalIsComplemented;
+                });
+
+                return {
+                    mask,
+                    literals,
+                    visibleLiterals: literals.filter(literal => literal.index < activeVars),
+                    bypassesFirstStage
+                };
+            });
+
+            // Generate only the complemented rails which are actually consumed.
+            const complementInputIndices = new Set();
+            termDetails.forEach(term => {
+                term.visibleLiterals.forEach(literal => {
+                    if (literal.useComplement) complementInputIndices.add(literal.index);
+                });
+            });
+
+            if (terms.length === 0 || minResult.sop === '0') {
+                wrapper.innerHTML = `<div class="text-xs text-slate-500 font-mono">Output Y is tied to Constant LOW (0)</div>`;
+                return;
+            }
+            if (minResult.sop === '1') {
+                wrapper.innerHTML = `<div class="text-xs text-emerald-400 font-mono">Output Y is tied to Constant HIGH (1)</div>`;
+                return;
+            }
+
+            const svgWidth = 680 * circuitZoom;
+            const svgHeight = Math.max(360, terms.length * 85 + 110) * circuitZoom;
+
+            let svgContent = `<svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 680 ${Math.max(360, terms.length * 85 + 110)}" xmlns="http://www.w3.org/2000/svg" class="transition-transform duration-200">`;
+
+            // Background & Defs
+            svgContent += `
+                <defs>
+                    <filter id="glowGold" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                </defs>
+            `;
+
+            // Draw Vertical Input Bus Lines
+            const startX = 60;
+            const busSpacing = 35;
+
+            for (let i = 0; i < activeVars; i++) {
+                const xTrue = startX + i * busSpacing * 2;
+                const xComp = xTrue + busSpacing;
+
+                // The true input rail is always available without a gate.
+                svgContent += `<text x="${xTrue}" y="25" fill="#E6C687" font-family="Fira Code" font-size="12" font-weight="bold" text-anchor="middle">${varNames[i]}</text>`;
+                svgContent += `<line x1="${xTrue}" y1="35" x2="${xTrue}" y2="${svgHeight - 30}" stroke="#E6C687" stroke-width="2" opacity="0.6"/>`;
+
+                if (!complementInputIndices.has(i)) continue;
+
+                const complementColor = isNorMode ? '#00FF9D' : '#E066FF';
+                svgContent += `<text x="${xComp}" y="25" fill="${complementColor}" font-family="Fira Code" font-size="12" font-weight="bold" text-anchor="middle">${varNames[i]}'</text>`;
+                svgContent += `<line x1="${xComp}" y1="35" x2="${xComp}" y2="${svgHeight - 30}" stroke="${complementColor}" stroke-width="2" opacity="0.6"/>`;
+                svgContent += `<circle cx="${xTrue}" cy="50" r="3" fill="#E6C687"/>`;
+
+                if (isNandMode) {
+                    // Pure Universal NAND Inverter (Inputs tied together)
+                    svgContent += `<path d="M ${xTrue} 50 L ${xComp - 28} 44" stroke="#E6C687" stroke-width="1.5"/>`;
+                    svgContent += `<path d="M ${xTrue} 50 L ${xComp - 28} 56" stroke="#E6C687" stroke-width="1.5"/>`;
+                    // NAND Gate shape for NOT
+                    svgContent += `<path d="M ${xComp - 28} 40 L ${xComp - 14} 40 A 10 10 0 0 1 ${xComp - 14} 60 L ${xComp - 28} 60 Z" fill="#07090E" stroke="#E066FF" stroke-width="1.5"/>`;
+                    svgContent += `<circle cx="${xComp - 10}" cy="50" r="2.5" fill="#07090E" stroke="#E066FF" stroke-width="1.5"/>`;
+                    svgContent += `<line x1="${xComp - 7.5}" y1="50" x2="${xComp}" y2="50" stroke="#E066FF" stroke-width="1.5"/>`;
+                } else if (isNorMode) {
+                    // Pure Universal NOR Inverter (Inputs tied together)
+                    svgContent += `<path d="M ${xTrue} 50 L ${xComp - 28} 44" stroke="#E6C687" stroke-width="1.5"/>`;
+                    svgContent += `<path d="M ${xTrue} 50 L ${xComp - 28} 56" stroke="#E6C687" stroke-width="1.5"/>`;
+                    // NOR Gate shape for NOT
+                    svgContent += `<path d="M ${xComp - 28} 40 Q ${xComp - 20} 40 ${xComp - 14} 50 Q ${xComp - 20} 60 ${xComp - 28} 60 Q ${xComp - 24} 50 ${xComp - 28} 40 Z" fill="#07090E" stroke="#00FF9D" stroke-width="1.5"/>`;
+                    svgContent += `<circle cx="${xComp - 10}" cy="50" r="2.5" fill="#07090E" stroke="#00FF9D" stroke-width="1.5"/>`;
+                    svgContent += `<line x1="${xComp - 7.5}" y1="50" x2="${xComp}" y2="50" stroke="#00FF9D" stroke-width="1.5"/>`;
+                } else {
+                    // Basic Mode Standard Inverter
+                    svgContent += `<path d="M ${xTrue} 50 L ${xComp - 8} 50" stroke="#E6C687" stroke-width="2"/>`;
+                    svgContent += `<polygon points="${xComp-14},43 ${xComp-14},57 ${xComp-4},50" fill="#07090E" stroke="#E066FF" stroke-width="1.5"/>`;
+                    svgContent += `<circle cx="${xComp-2}" cy="50" r="2" fill="#07090E" stroke="#E066FF" stroke-width="1.5"/>`;
+                }
+            }
+
+            // Draw Stage 1 Logic Gates (Strictly NAND, NOR, or AND)
+            const stage1X = 370;
+            const gateOutputs = [];
+
+            termDetails.forEach((term, idx) => {
+                const gateY = 95 + idx * 75;
+
+                // A literal going into an OR (or its NAND/NOR equivalent) is
+                // already a complete term, so a one-input AND/NAND/NOR is redundant.
+                if (term.bypassesFirstStage) {
+                    const literal = term.literals[0];
+                    const busX = startX + literal.index * busSpacing * 2 + (literal.useComplement ? busSpacing : 0);
+                    gateOutputs.push({
+                        x: busX,
+                        y: gateY,
+                        direct: true,
+                        color: literal.useComplement ? (isNorMode ? '#00FF9D' : '#E066FF') : '#E6C687'
+                    });
+                    return;
+                }
+
+                // Connect the literals that require a real first-stage gate.
+                term.visibleLiterals.forEach(literal => {
+                    const busX = startX + literal.index * busSpacing * 2 + (literal.useComplement ? busSpacing : 0);
+                    const inputY = gateY - 10 + literal.index * 6;
+                    const color = literal.useComplement ? (isNorMode ? '#00FF9D' : '#E066FF') : '#E6C687';
+
+                    svgContent += `<line x1="${busX}" y1="${inputY}" x2="${stage1X}" y2="${inputY}" stroke="${color}" stroke-width="1.5"/>`;
+                    svgContent += `<circle cx="${busX}" cy="${inputY}" r="3" fill="${color}"/>`;
+                });
+
+                if (isNandMode) {
+                    // NAND Gate Symbol Only
+                    svgContent += `<path d="M ${stage1X} ${gateY-20} L ${stage1X+18} ${gateY-20} A 20 20 0 0 1 ${stage1X+18} ${gateY+20} L ${stage1X} ${gateY+20} Z" fill="#07090E" stroke="#E066FF" stroke-width="2"/>`;
+                    svgContent += `<circle cx="${stage1X+42}" cy="${gateY}" r="4" fill="#07090E" stroke="#E066FF" stroke-width="2"/>`;
+                    gateOutputs.push({ x: stage1X + 46, y: gateY });
+                } else if (isNorMode) {
+                    // NOR Gate Symbol Only
+                    svgContent += `<path d="M ${stage1X} ${gateY-20} Q ${stage1X+15} ${gateY-20} ${stage1X+30} ${gateY} Q ${stage1X+15} ${gateY+20} ${stage1X} ${gateY+20} Q ${stage1X+12} ${gateY} ${stage1X} ${gateY-20} Z" fill="#07090E" stroke="#00FF9D" stroke-width="2"/>`;
+                    svgContent += `<circle cx="${stage1X+34}" cy="${gateY}" r="4" fill="#07090E" stroke="#00FF9D" stroke-width="2"/>`;
+                    gateOutputs.push({ x: stage1X + 38, y: gateY });
+                } else {
+                    // AND Gate Symbol (Basic Mode)
+                    svgContent += `<path d="M ${stage1X} ${gateY-20} L ${stage1X+20} ${gateY-20} A 20 20 0 0 1 ${stage1X+20} ${gateY+20} L ${stage1X} ${gateY+20} Z" fill="#07090E" stroke="#E6C687" stroke-width="2" filter="url(#glowGold)"/>`;
+                    gateOutputs.push({ x: stage1X + 40, y: gateY });
+                }
+            });
+
+            // Draw Stage 2 Logic Gate (Strictly NAND, NOR, or OR)
+            const finalX = 550;
+            const finalY = (gateOutputs[0].y + gateOutputs[gateOutputs.length - 1].y) / 2;
+
+            // With one Basic-Gates term, an OR gate would be a no-op. Route the
+            // term directly to Y instead of drawing a single-input OR gate.
+            if (!isNandMode && !isNorMode && gateOutputs.length === 1) {
+                const output = gateOutputs[0];
+                const outputColor = output.direct ? output.color : '#00FF9D';
+                svgContent += `<circle cx="${output.x}" cy="${output.y}" r="3" fill="${outputColor}"/>`;
+                svgContent += `<line x1="${output.x}" y1="${output.y}" x2="${finalX + 80}" y2="${output.y}" stroke="${outputColor}" stroke-width="2.5"/>`;
+                svgContent += `<text x="${finalX + 92}" y="${output.y + 4}" fill="${outputColor}" font-family="Fira Code" font-size="14" font-weight="bold">Y</text>`;
+                svgContent += `</svg>`;
+                wrapper.innerHTML = svgContent;
+                return;
+            }
+
+            gateOutputs.forEach(gOut => {
+                const wireColor = gOut.direct ? gOut.color : (isNorMode ? '#00FF9D' : (isNandMode ? '#E066FF' : '#00FF9D'));
+                if (gOut.direct) {
+                    svgContent += `<circle cx="${gOut.x}" cy="${gOut.y}" r="3" fill="${wireColor}"/>`;
+                }
+                svgContent += `<path d="M ${gOut.x} ${gOut.y} L ${finalX} ${gOut.y} L ${finalX} ${finalY}" stroke="${wireColor}" stroke-width="2" fill="none"/>`;
+            });
+
+            if (isNandMode) {
+                // Final Stage NAND Gate
+                svgContent += `<path d="M ${finalX} ${finalY-22} L ${finalX+18} ${finalY-22} A 22 22 0 0 1 ${finalX+18} ${finalY+22} L ${finalX} ${finalY+22} Z" fill="#07090E" stroke="#E066FF" stroke-width="2.5" filter="url(#glowGold)"/>`;
+                svgContent += `<circle cx="${finalX+44}" cy="${finalY}" r="4.5" fill="#07090E" stroke="#E066FF" stroke-width="2.5"/>`;
+                svgContent += `<line x1="${finalX+48.5}" y1="${finalY}" x2="${finalX+80}" y2="${finalY}" stroke="#E066FF" stroke-width="2.5"/>`;
+                svgContent += `<text x="${finalX+92}" y="${finalY+4}" fill="#E066FF" font-family="Fira Code" font-size="14" font-weight="bold">Y</text>`;
+            } else if (isNorMode) {
+                // Final Stage NOR Gate
+                svgContent += `<path d="M ${finalX} ${finalY-22} Q ${finalX+15} ${finalY-22} ${finalX+32} ${finalY} Q ${finalX+15} ${finalY+22} ${finalX} ${finalY+22} Q ${finalX+12} ${finalY} ${finalX} ${finalY-22} Z" fill="#07090E" stroke="#00FF9D" stroke-width="2.5" filter="url(#glowGold)"/>`;
+                svgContent += `<circle cx="${finalX+36.5}" cy="${finalY}" r="4.5" fill="#07090E" stroke="#00FF9D" stroke-width="2.5"/>`;
+                svgContent += `<line x1="${finalX+41}" y1="${finalY}" x2="${finalX+80}" y2="${finalY}" stroke="#00FF9D" stroke-width="2.5"/>`;
+                svgContent += `<text x="${finalX+92}" y="${finalY+4}" fill="#00FF9D" font-family="Fira Code" font-size="14" font-weight="bold">Y</text>`;
+            } else {
+                // Final Stage OR Gate (Basic Mode)
+                svgContent += `<path d="M ${finalX} ${finalY-22} Q ${finalX+15} ${finalY-22} ${finalX+35} ${finalY} Q ${finalX+15} ${finalY+22} ${finalX} ${finalY+22} Q ${finalX+12} ${finalY} ${finalX} ${finalY-22} Z" fill="#07090E" stroke="#00FF9D" stroke-width="2" filter="url(#glowGold)"/>`;
+                svgContent += `<line x1="${finalX+36}" y1="${finalY}" x2="${finalX+80}" y2="${finalY}" stroke="#00FF9D" stroke-width="2.5"/>`;
+                svgContent += `<text x="${finalX+92}" y="${finalY+4}" fill="#00FF9D" font-family="Fira Code" font-size="14" font-weight="bold">Y</text>`;
+            }
+
+            svgContent += `</svg>`;
+            wrapper.innerHTML = svgContent;
+        }
+
+        function setSynthesisMode(mode) {
+            synthesisMode = mode;
+            ['btnSynthBasic', 'btnSynthNand', 'btnSynthNor'].forEach(id => {
+                const btn = document.getElementById(id);
+                if (btn) {
+                    btn.className = "px-4 py-2 text-xs font-bold rounded-xl text-slate-300 hover:text-white transition";
+                }
+            });
+
+            const statusEl = document.getElementById('optimizationStatus');
+
+            if (mode === 'basic') {
+                document.getElementById('btnSynthBasic').className = "px-4 py-2 text-xs font-bold rounded-xl bg-gold-400 text-black shadow transition";
+                if (statusEl) statusEl.innerText = "Quine-McCluskey Minimal SOP";
+            }
+            if (mode === 'nand') {
+                document.getElementById('btnSynthNand').className = "px-4 py-2 text-xs font-bold rounded-xl bg-fuchsia-500 text-black shadow transition";
+                if (statusEl) statusEl.innerText = "Universal NAND-Only Logic (Zero AND/OR/NOT)";
+            }
+            if (mode === 'nor') {
+                document.getElementById('btnSynthNor').className = "px-4 py-2 text-xs font-bold rounded-xl bg-emerald-500 text-black shadow transition";
+                if (statusEl) statusEl.innerText = "Universal NOR-Only Logic (Zero AND/OR/NOT)";
+            }
+
+            renderAll();
+        }
+
+        function renderRTLCode(minResult) {
+            const display = document.getElementById('rtlCodeDisplay');
+            if (!display) return;
+
+            const inputs = varNames.slice(0, numVars).join(', ');
+
+            if (activeRTLTab === 'verilog') {
+                display.innerHTML = `
+<span class="syn-kw">module</span> <span class="syn-type">digital_circuit</span> (
+    <span class="syn-kw">input</span>  [<span class="syn-num">${numVars-1}</span>:0] in_bus,
+    <span class="syn-kw">output</span> Y
+);
+    <span class="syn-comment">// Synthesized SOP Expression: Y = ${minResult.sop}</span>
+    <span class="syn-kw">assign</span> Y = <span class="syn-str">${minResult.sop.replace(/'/g, '_n')}</span>;
+<span class="syn-kw">endmodule</span>`;
+            } else if (activeRTLTab === 'vhdl') {
+                display.innerHTML = `
+<span class="syn-kw">library</span> IEEE;
+<span class="syn-kw">use</span> IEEE.STD_LOGIC_1164.ALL;
+
+<span class="syn-kw">entity</span> <span class="syn-type">digital_circuit</span> <span class="syn-kw">is</span>
+    <span class="syn-kw">Port</span> ( in_bus : <span class="syn-kw">in</span> STD_LOGIC_VECTOR (<span class="syn-num">${numVars-1}</span> <span class="syn-kw">downto</span> 0);
+           Y : <span class="syn-kw">out</span> STD_LOGIC);
+<span class="syn-kw">end entity</span>;
+`;
+            } else {
+                display.innerHTML = `
+<span class="syn-kw">module</span> <span class="syn-type">tb_circuit</span>;
+    <span class="syn-kw">reg</span> [<span class="syn-num">${numVars-1}</span>:0] in_bus;
+    <span class="syn-kw">wire</span> Y;
+    digital_circuit uut (.in_bus(in_bus), .Y(Y));
+<span class="syn-kw">endmodule</span>`;
+            }
+        }
+
+        function switchRTLTab(tab) {
+            activeRTLTab = tab;
+            ['tabRTLVerilog', 'tabRTLVhdl', 'tabRTLTb'].forEach(id => {
+                const b = document.getElementById(id);
+                if (b) b.className = "px-3 py-1 text-xs font-mono rounded-lg text-gray-400 hover:text-gray-200";
+            });
+            if (tab === 'verilog') document.getElementById('tabRTLVerilog').className = "px-3 py-1 text-xs font-mono rounded-lg bg-gold-950 text-gold-300 border border-gold-500/30";
+            if (tab === 'vhdl') document.getElementById('tabRTLVhdl').className = "px-3 py-1 text-xs font-mono rounded-lg bg-gold-950 text-gold-300 border border-gold-500/30";
+            if (tab === 'tb') document.getElementById('tabRTLTb').className = "px-3 py-1 text-xs font-mono rounded-lg bg-gold-950 text-gold-300 border border-gold-500/30";
+
+            const minResult = minimizeBoolean();
+            renderRTLCode(minResult);
+        }
+
+        function renderMetrics(minResult) {
+            const gates = (minResult.termsSOP || []).length + 1;
+            const transistors = gates * 6;
+            const delay = (gates * 0.6).toFixed(1);
+
+            document.getElementById('metricGates').innerText = `${gates} Gates`;
+            document.getElementById('metricTransistors').innerText = `${transistors} Transistors`;
+            document.getElementById('metricDelay').innerText = `${delay} ns`;
+        }
+
+        function loadPreset(type) {
+            if (type === 'fullAdder') {
+                numVars = 3;
+                changeNumVariables(3);
+                truthTable = ['0', '1', '1', '0', '1', '0', '0', '1']; // Sum
+            } else if (type === 'majority') {
+                numVars = 3;
+                changeNumVariables(3);
+                truthTable = ['0', '0', '0', '1', '0', '1', '1', '1'];
+            } else if (type === 'bcd') {
+                numVars = 4;
+                changeNumVariables(4);
+                truthTable = ['1', '0', '1', '1', '0', '1', '1', '1', '1', '1', 'X', 'X', 'X', 'X', 'X', 'X'];
+            } else if (type === 'parity') {
+                numVars = 4;
+                changeNumVariables(4);
+                truthTable = ['0', '1', '1', '0', '1', '0', '0', '1', '1', '0', '0', '1', '0', '1', '1', '0'];
+            }
+            renderAll();
+            showToast(`Loaded Preset: ${type}`);
+        }
+
+        function resetSystem() {
+            numVars = 3;
+            changeNumVariables(3);
+            truthTable = new Array(8).fill('0');
+            renderAll();
+            showToast("System Reset Complete");
+        }
+
+        function switchInputTab(tab) {
+            activeInputTab = tab;
+            if (tab === 'tt') {
+                document.getElementById('tabContentTT').classList.remove('hidden');
+                document.getElementById('tabContentTT').classList.add('flex');
+                document.getElementById('tabContentCanon').classList.add('hidden');
+                document.getElementById('tabContentCanon').classList.remove('flex');
+                document.getElementById('tabBtnTT').className = "flex-1 py-3.5 text-xs font-display font-bold tracking-wider border-b-2 border-gold-400 text-gold-300 transition";
+                document.getElementById('tabBtnCanon').className = "flex-1 py-3.5 text-xs font-display font-bold tracking-wider text-gray-400 hover:text-gray-200 border-b-2 border-transparent transition";
+            } else {
+                document.getElementById('tabContentTT').classList.add('hidden');
+                document.getElementById('tabContentTT').classList.remove('flex');
+                document.getElementById('tabContentCanon').classList.remove('hidden');
+                document.getElementById('tabContentCanon').classList.add('flex');
+                document.getElementById('tabBtnTT').className = "flex-1 py-3.5 text-xs font-display font-bold tracking-wider text-gray-400 hover:text-gray-200 border-b-2 border-transparent transition";
+                document.getElementById('tabBtnCanon').className = "flex-1 py-3.5 text-xs font-display font-bold tracking-wider border-b-2 border-gold-400 text-gold-300 transition";
+            }
+        }
+
+        function applyCanonicalNotation() {
+            const mText = document.getElementById('mintermsInput').value;
+            const dText = document.getElementById('dontCaresInput').value;
+
+            const mList = mText.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x));
+            const dList = dText.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x));
+
+            truthTable = truthTable.map((_, i) => {
+                if (mList.includes(i)) return '1';
+                if (dList.includes(i)) return 'X';
+                return '0';
+            });
+
+            renderAll();
+            showToast("Canonical Notation Applied!");
+        }
+
+        async function handleOCRUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const loading = document.getElementById('ocrLoading');
+            if (loading) loading.classList.remove('hidden');
+
+            const fileName = file.name || '';
+            const fileType = file.type || '';
+            const isImage = fileType.startsWith('image/') || /\.(png|jpe?g|webp|gif|bmp|svg|tiff)$/i.test(fileName);
+
+            // Keep the original text/CSV/document inspector path. Image scans use the
+            // direct Gemini Vision request from logix_pro.html, so no local server is needed.
+            if (!isImage) {
+                const textReader = new FileReader();
+                textReader.onload = (e) => {
+                    if (loading) loading.classList.add('hidden');
+                    openOCRInspectorModal(null, String(e.target.result || ''), false, fileName);
+                    event.target.value = '';
+                };
+                textReader.onerror = () => {
+                    if (loading) loading.classList.add('hidden');
+                    showToast("Could not read the selected file.");
+                    event.target.value = '';
+                };
+                textReader.readAsText(file);
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                currentUploadedDataUrl = e.target.result;
+                const base64Data = currentUploadedDataUrl.split(',')[1];
+
+                try {
+                    const prompt = `You are a digital logic expert. Analyze the provided image of a truth table.
+                    Extract the output column (often labeled Y, Out, F, or Result).
+                    The truth table will have some number of rows (e.g., 2, 4, 8, 16).
+                    Return ONLY a JSON array containing the output values in order from top to bottom row.
+                    The values should be strings: "0", "1", or "X" (for don't care).
+                    If a row is empty or unreadable, try to infer it from the pattern, or use "0" as a fallback.
+                    Ensure the array length matches a power of 2 (2, 4, 8, 16) if possible, based on the number of input columns.
+                    If the image is not a truth table, return an array of "0"s based on the assumed number of inputs (default 8).`;
+
+                    const payload = {
+                        contents: [{
+                            role: "user",
+                            parts: [
+                                { text: prompt },
+                                { inlineData: { mimeType: file.type || "image/jpeg", data: base64Data } }
+                            ]
+                        }],
+                        generationConfig: {
+                            responseMimeType: "application/json",
+                            responseSchema: {
+                                type: "ARRAY",
+                                items: { type: "STRING", enum: ["0", "1", "X", "x"] },
+                                description: "Truth-table output states ordered from top row to bottom row."
+                            }
+                        }
+                    };
+
+                    const apiKey = "AIzaSyDBfOwHR601sO4STPa9x-A6_W8kMoUDX9s";
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Gemini request failed (${response.status}).`);
+                    }
+
+                    const result = await response.json();
+                    const jsonText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+                    const parsedOutputs = JSON.parse(jsonText);
+                    if (!Array.isArray(parsedOutputs) || parsedOutputs.length === 0) {
+                        throw new Error("Gemini returned no truth-table output states.");
+                    }
+
+                    ocrDetectedOutputs = parsedOutputs.map(value => {
+                        const normalized = String(value).toUpperCase().trim();
+                        if (['1', 'T', 'TRUE', 'H', 'HIGH'].includes(normalized)) return '1';
+                        if (['X', 'D', '-'].includes(normalized)) return 'X';
+                        return '0';
+                    });
+
+                    const imgEl = document.getElementById('ocrPreviewImage');
+                    const textPreviewEl = document.getElementById('ocrFileTextPreview');
+                    if (imgEl) {
+                        imgEl.src = currentUploadedDataUrl;
+                        imgEl.classList.remove('hidden');
+                    }
+                    if (textPreviewEl) textPreviewEl.classList.add('hidden');
+                    document.getElementById('ocrRawTextArea').value = JSON.stringify(ocrDetectedOutputs, null, 2);
+                    renderOCRMatrixGrid();
+                    document.getElementById('ocrModal').classList.remove('hidden');
+                } catch (error) {
+                    console.error("Gemini Vision API Error:", error);
+                    showToast("Error parsing image. Ensure it is a clear truth table.");
+                } finally {
+                    if (loading) loading.classList.add('hidden');
+                    event.target.value = '';
+                }
+            };
+            reader.onerror = () => {
+                if (loading) loading.classList.add('hidden');
+                showToast("Could not read the selected image.");
+                event.target.value = '';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function openOCRInspectorModal(imgSrc, text, isImage = true, fileName = null) {
+            const imgEl = document.getElementById('ocrPreviewImage');
+            const textPreviewEl = document.getElementById('ocrFileTextPreview');
+            const rawTextArea = document.getElementById('ocrRawTextArea');
+
+            if (isImage && imgSrc) {
+                if (imgEl) {
+                    imgEl.src = imgSrc;
+                    imgEl.classList.remove('hidden');
+                }
+                if (textPreviewEl) textPreviewEl.classList.add('hidden');
+            } else {
+                if (imgEl) imgEl.classList.add('hidden');
+                if (textPreviewEl) {
+                    textPreviewEl.innerText = `File: ${fileName || 'Document'}\n---\n${text.slice(0, 1000)}${text.length > 1000 ? '\n...' : ''}`;
+                    textPreviewEl.classList.remove('hidden');
+                }
+            }
+
+            if (rawTextArea) rawTextArea.value = text;
+            parseAndDisplayOCRMatrix(text);
+
+            const modal = document.getElementById('ocrModal');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeOCRModal() {
+            const modal = document.getElementById('ocrModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        // Fuzzy OCR Token Classifier for 1, 0, and X
+        function mapOCRTokenToValue(tok) {
+            if (!tok) return null;
+            const t = tok.trim().toUpperCase();
+            if (!t) return null;
+
+            // Don't Cares
+            if (/^(X|\*|\-|\+|\#|D|DON'?T|DONT|DC|\?|×)$/i.test(t)) return 'X';
+
+            // Logic 1s (including OCR misreads like l, I, !, |, /)
+            if (/^(1|I|L|i|\||\!|\/|\]|\[|T|HIGH|TRUE|ONE|ON)$/i.test(t)) return '1';
+
+            // Logic 0s (including OCR misreads like O, Q, C, U)
+            if (/^(0|O|Q|C|U|LOW|FALSE|ZERO|OFF)$/i.test(t)) return '0';
+
+            return null;
+        }
+
+        function renderOCRMatrixGrid() {
+            const grid = document.getElementById('ocrParsedGrid');
+            if (!grid) return;
+
+            let c0 = 0, c1 = 0, cX = 0;
+            grid.innerHTML = ocrDetectedOutputs.map((v, i) => {
+                if (v === '1') c1++; else if (v === '0') c0++; else cX++;
+                const cl = v === '1' ? 'bg-emerald-950 text-emerald-300' : (v === 'X' ? 'bg-fuchsia-950 text-fuchsia-300' : 'bg-cyan-950 text-cyan-300');
+                return `<button onclick="toggleOCRGridCell(${i})" class="p-2 rounded-lg border border-white/10 ${cl} font-mono text-xs">m${i}: <strong>${v}</strong></button>`;
+            }).join('');
+
+            document.getElementById('ocrBadge1').innerText = `1s: ${c1}`;
+            document.getElementById('ocrBadge0').innerText = `0s: ${c0}`;
+            document.getElementById('ocrBadgeX').innerText = `X: ${cX}`;
+        }
+
+        function toggleOCRGridCell(i) {
+            const c = ocrDetectedOutputs[i];
+            ocrDetectedOutputs[i] = c === '0' ? '1' : (c === '1' ? 'X' : '0');
+            renderOCRMatrixGrid();
+        }
+
+        // Helper to expand binary inputs containing Don't Cares ('X' or 'x') to all matching minterm indices
+        function expandInputWithDontCares(slice) {
+            let indices = [0];
+            for (let i = 0; i < slice.length; i++) {
+                const bit = slice[i];
+                if (bit === '1') {
+                    indices = indices.map(idx => (idx << 1) | 1);
+                } else if (bit === '0') {
+                    indices = indices.map(idx => idx << 1);
+                } else if (bit === 'X' || bit === 'x') {
+                    const next = [];
+                    indices.forEach(idx => {
+                        next.push(idx << 1);
+                        next.push((idx << 1) | 1);
+                    });
+                    indices = next;
+                }
+            }
+            return indices;
+        }
+
+        function parseAndDisplayOCRMatrix(text) {
+            if (!text || !text.trim()) {
+                ocrDetectedOutputs = new Array(Math.pow(2, numVars)).fill('0');
+                renderOCRMatrixGrid();
+                return;
+            }
+
+            const totalRows = Math.pow(2, numVars);
+            let results = new Array(totalRows).fill(null);
+
+            // Pre-clean text terms
+            let cleanText = text
+                .replace(/\b(DON'?T\s*CARE|DONT\s*CARE|DONTCARE|DONTC)\b/gi, ' X ')
+                .replace(/\b(HIGH|TRUE|ONE|ON)\b/gi, ' 1 ')
+                .replace(/\b(LOW|FALSE|ZERO|OFF)\b/gi, ' 0 ');
+
+            // Strategy 1: Explicit Minterm / Maxterm / Don't Care list matching (e.g. Σm(0,2,5), d(1,3), x(1,3))
+            const sumMatch = cleanText.match(/(?:minterms?|Σm?|\bsum\b|\bsop\b|ones?)\s*[:=\(]?\s*([0-9\s,]+)/i);
+            const maxMatch = cleanText.match(/(?:maxterms?|ΠM?|\bpos\b|zeros?)\s*[:=\(]?\s*([0-9\s,]+)/i);
+            const dcMatch = cleanText.match(/(?:dont\s*care|d\(|x\(|\bdc\b|dontcares?|\bx\b|\bd\b)\s*[:=\(]?\s*([0-9\s,]+)/i);
+
+            if (sumMatch || maxMatch || dcMatch) {
+                const minList = sumMatch ? sumMatch[1].split(/[\s,]+/).map(n => parseInt(n)).filter(n => !isNaN(n)) : [];
+                const maxList = maxMatch ? maxMatch[1].split(/[\s,]+/).map(n => parseInt(n)).filter(n => !isNaN(n)) : [];
+                const dcList = dcMatch ? dcMatch[1].split(/[\s,]+/).map(n => parseInt(n)).filter(n => !isNaN(n)) : [];
+
+                if (minList.length > 0 || maxList.length > 0 || dcList.length > 0) {
+                    for (let i = 0; i < totalRows; i++) {
+                        if (dcList.includes(i)) results[i] = 'X';
+                        else if (minList.includes(i)) results[i] = '1';
+                        else if (maxList.length > 0 && maxList.includes(i)) results[i] = '0';
+                        else if (minList.length > 0) results[i] = '0';
+                    }
+                }
+            }
+
+            // Strategy 2: Line-by-Line Binary Input Pattern & Index Match
+            const lines = cleanText.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+
+            lines.forEach(line => {
+                const upper = line.toUpperCase();
+                // Filter table header lines
+                if (upper.includes('TRUTH TABLE') || upper.includes('INPUT') || upper.includes('OUTPUT') || upper.includes('VAR') || upper.includes('MINTERM')) {
+                    if (!line.match(/\d/)) return;
+                }
+
+                // Explicit index notation: e.g. "m0: 1" or "0 => X" or "m3 = 0"
+                const explicitMatch = line.match(/\bm?([0-9]{1,3})\b\s*[:=\-\|\>\t]+\s*([01xX\*\-\+\#dDiI|!oOQ]);?/i);
+                if (explicitMatch) {
+                    const idx = parseInt(explicitMatch[1]);
+                    const val = mapOCRTokenToValue(explicitMatch[2]);
+                    if (!isNaN(idx) && idx >= 0 && idx < totalRows && val) {
+                        results[idx] = val;
+                        return;
+                    }
+                }
+
+                // Tokenize line and map fuzzy characters
+                const rawTokens = line.split(/[\s,\|\t;:]+/).filter(t => t.length > 0);
+                const mappedTokens = rawTokens.map(t => mapOCRTokenToValue(t)).filter(v => v !== null);
+
+                // Case 2a: Row with binary/don't-care inputs + output (e.g. "0 1 X  1" or "0 1 x  X")
+                if (mappedTokens.length >= numVars + 1) {
+                    const inputSlice = mappedTokens.slice(0, numVars);
+                    const isValidInput = inputSlice.every(v => v === '0' || v === '1' || v === 'X');
+                    if (isValidInput) {
+                        const outVal = mappedTokens[numVars];
+                        const rowIndices = expandInputWithDontCares(inputSlice);
+                        rowIndices.forEach(rowIdx => {
+                            if (rowIdx >= 0 && rowIdx < totalRows) {
+                                results[rowIdx] = outVal;
+                            }
+                        });
+                        return;
+                    }
+                }
+
+                // Case 2b: Row with index + binary/don't-care inputs + output (e.g. "2  0 1 X  1")
+                if (mappedTokens.length >= numVars + 2) {
+                    const inputSlice = mappedTokens.slice(1, numVars + 1);
+                    const isValidInput = inputSlice.every(v => v === '0' || v === '1' || v === 'X');
+                    if (isValidInput) {
+                        const outVal = mappedTokens[numVars + 1];
+                        const rowIndices = expandInputWithDontCares(inputSlice);
+                        rowIndices.forEach(rowIdx => {
+                            if (rowIdx >= 0 && rowIdx < totalRows) {
+                                results[rowIdx] = outVal;
+                            }
+                        });
+                        return;
+                    }
+                }
+            });
+
+            // Strategy 3: Stream fallback parser for direct arrays or raw sequences
+            const filledCount = results.filter(v => v !== null).length;
+            if (filledCount < Math.min(4, totalRows)) {
+                const allTokens = [];
+                const rawAll = cleanText.split(/[\s,\|\t;:()\[\]\n\r]+/);
+                rawAll.forEach(tok => {
+                    const mapped = mapOCRTokenToValue(tok);
+                    if (mapped !== null) allTokens.push(mapped);
+                });
+
+                if (allTokens.length === totalRows) {
+                    for (let i = 0; i < totalRows; i++) results[i] = allTokens[i];
+                } else if (allTokens.length >= (numVars + 1) * totalRows) {
+                    for (let i = 0; i < totalRows; i++) {
+                        const outIdx = (i * (numVars + 1)) + numVars;
+                        if (outIdx < allTokens.length) results[i] = allTokens[outIdx];
+                    }
+                } else if (allTokens.length > 0) {
+                    for (let i = 0; i < totalRows; i++) {
+                        if (results[i] === null) {
+                            results[i] = allTokens[i] !== undefined ? allTokens[i] : '0';
+                        }
+                    }
+                }
+            }
+
+            ocrDetectedOutputs = results.map(v => v !== null ? v : '0');
+            renderOCRMatrixGrid();
+        }
+
+        function applyRawTextToOCRGrid() {
+            parseAndDisplayOCRMatrix(document.getElementById('ocrRawTextArea').value);
+        }
+
+        function confirmAndApplyOCR() {
+            if (!ocrDetectedOutputs || ocrDetectedOutputs.length === 0) return;
+
+            // Match the truth-table size to the scanned image, as in logix_pro.html.
+            const neededVars = Math.max(1, Math.min(8, Math.ceil(Math.log2(ocrDetectedOutputs.length))));
+            if (neededVars !== numVars) changeNumVariables(neededVars);
+
+            truthTable = new Array(Math.pow(2, numVars)).fill('0');
+            ocrDetectedOutputs.slice(0, truthTable.length).forEach((value, index) => {
+                truthTable[index] = value;
+            });
+            renderAll();
+            closeOCRModal();
+            showToast(`Applied ${ocrDetectedOutputs.length} scanned states to the Truth Table.`);
+        }
+
+        function zoomCircuit(delta) {
+            circuitZoom = Math.max(0.6, Math.min(2.0, circuitZoom + delta));
+            renderCircuitSVG(minimizeBoolean());
+        }
+
+        function resetCircuitZoom() {
+            circuitZoom = 1.0;
+            renderCircuitSVG(minimizeBoolean());
+        }
+
+        function showToast(msg) {
+            const box = document.getElementById('toastBox');
+            if (!box) return;
+            box.innerText = msg;
+            box.classList.remove('hidden');
+            setTimeout(() => box.classList.add('hidden'), 3000);
+        }
+
+        function copyRTLCode() {
+            const code = document.getElementById('rtlCodeDisplay').innerText;
+            navigator.clipboard.writeText(code);
+            showToast("RTL Code Copied to Clipboard!");
+        }
+
+        function downloadCircuitSVG() {
+            const svgEl = document.querySelector('#circuitSVGWrapper svg');
+            if (!svgEl) return;
+            const blob = new Blob([svgEl.outerHTML], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'logic_circuit.svg';
+            a.click();
+            showToast("Circuit SVG Downloaded!");
+        }
+    </script>
+</body>
+</html>
